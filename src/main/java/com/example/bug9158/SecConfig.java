@@ -20,6 +20,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import javax.servlet.*;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
@@ -27,37 +28,24 @@ public class SecConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                .addFilterBefore(new Filter() {
-                    @Override
-                    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-                        SecurityContextHolder.getContext().setAuthentication(
-                                grantedAuth());
-
-                        chain.doFilter(request, response);
-                    }
-                }, BasicAuthenticationFilter.class)
+                .addFilterBefore(
+                        (request, response, chain) -> {
+                            SecurityContextHolder.getContext().setAuthentication(granted());
+                            chain.doFilter(request, response);
+                        },
+                        BasicAuthenticationFilter.class)
 
                 .authorizeRequests().anyRequest().authenticated();
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication()
-                .withUser("adm").password("any").roles("ADMIN")
-                .and()
-                .withUser("usr").password("any").roles("USER");
+        auth.inMemoryAuthentication();
     }
 
     @Bean
     public UserDetailsService userDetailsService() {
         return super.userDetailsService();
-    }
-
-    static Authentication grantedAuth() {
-        return new UsernamePasswordAuthenticationToken(
-                "adm",
-                "pass",
-                Arrays.asList(new SimpleGrantedAuthority("ROLE_ADMIN")));
     }
 
     @Bean
@@ -70,5 +58,12 @@ public class SecConfig extends WebSecurityConfigurerAdapter {
         final RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
         roleHierarchy.setHierarchy("ROLE_ADMIN > ROLE_USER");
         return roleHierarchy;
+    }
+
+    private Authentication granted() {
+        return new UsernamePasswordAuthenticationToken(
+                "adm",
+                "pass",
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
     }
 }
