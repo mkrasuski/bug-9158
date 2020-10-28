@@ -2,7 +2,7 @@
 
 this project demonsrates Spring Security Bug #9158
 
-Security configuration adds filter granting user with ADMIN role, role hierarchy with `ROLE_ADMIN > ROLE_USER` and three andpoints showing that:
+Security configuration adds filter granting user with ADMIN role, role hierarchy with `ROLE_ADMIN > ROLE_USER` and three endpoints showing that:
 
  - /admin mapped with `@Secured` works for granted ADMIN role
  - /user mapped with `@Secured` **DOES NOT** work for USER role granted via hierarchy
